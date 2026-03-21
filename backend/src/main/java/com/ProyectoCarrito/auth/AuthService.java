@@ -1,8 +1,10 @@
 package com.ProyectoCarrito.auth;
 
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,31 +34,37 @@ public class AuthService {
 	
 	// AUTENTICA USUARIO Y GENERA TOKEN JWT
 	public LoginResponse login(LoginRequest request) {
-		// AUTENTICA CREDENCIALES
-		Authentication authentication = authenticationManager.authenticate(
-				new UsernamePasswordAuthenticationToken(
-						request.getEmail(), 
-						request.getPwd())
-		);
-		
-		// ESTABLECE AUTENTICACION EN EL CONTEXTO
-		SecurityContextHolder.getContext().setAuthentication(authentication);
-		
-		// GENERA TOKEN JWT
-		String token = tokenProvider.generarToken(authentication);
-		
-		// OBTIENEN DATOS DEL USUARIO
-		Usuario usuario = userDetailsService.obtenerUsuarioPorEmail(request.getEmail());
-		
-		// CONSTRUYE RESPUESTA
-		return new LoginResponse(
-				token,
-				"Bearer",
-				usuario.getId(),
-				usuario.getNombre(),
-				usuario.getEmail(),
-				usuario.getRol().getNombre()
-		);
+		try {
+			// AUTENTICA CREDENCIALES
+			Authentication authentication = authenticationManager.authenticate(
+					new UsernamePasswordAuthenticationToken(
+							request.getEmail(), 
+							request.getPwd())
+			);
+			
+			// ESTABLECE AUTENTICACION EN EL CONTEXTO
+			SecurityContextHolder.getContext().setAuthentication(authentication);
+			
+			// GENERA TOKEN JWT
+			String token = tokenProvider.generarToken(authentication);
+			
+			// OBTIENEN DATOS DEL USUARIO
+			Usuario usuario = userDetailsService.obtenerUsuarioPorEmail(request.getEmail());
+			
+			// CONSTRUYE RESPUESTA
+			return new LoginResponse(
+					token,
+					"Bearer",
+					usuario.getId(),
+					usuario.getNombre(),
+					usuario.getEmail(),
+					usuario.getRol().getNombre()
+			);
+		} catch (BadCredentialsException ex) {
+			throw new BadCredentialsException("Email o contraseña incorrectos");
+		} catch (AuthenticationException ex) {
+			throw new BadCredentialsException("Error de autenticación: " + ex.getMessage());
+		}
 	}
 	
 	// REGISTRO USUARIO (CLIENTE)
