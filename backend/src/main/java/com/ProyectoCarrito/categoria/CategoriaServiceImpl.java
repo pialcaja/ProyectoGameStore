@@ -2,7 +2,6 @@ package com.ProyectoCarrito.categoria;
 
 import java.util.List;
 
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 public class CategoriaServiceImpl implements CategoriaService {
 
 	private final CategoriaRepository categoriaRepo;
-	private final ModelMapper modelMapper;
 
 	@Override
 	@Transactional(readOnly = true)
@@ -43,7 +41,9 @@ public class CategoriaServiceImpl implements CategoriaService {
 			throw new ConflictException("Ya existe una categoría con el nombre: " + dto.getNombre());
 		}
 
-		Categoria categoria = modelMapper.map(dto, Categoria.class);
+		Categoria categoria = new Categoria();
+		categoria.setNombre(dto.getNombre());
+		categoria.setDescripcion(dto.getDescripcion());
 		categoria.setEstado(true);
 
 		categoriaRepo.save(categoria);

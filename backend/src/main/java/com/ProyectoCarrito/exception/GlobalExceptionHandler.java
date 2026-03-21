@@ -6,6 +6,8 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -63,6 +65,38 @@ public class GlobalExceptionHandler {
 		
 		return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
 	}
+	
+    // MANEJA ERROR 401 - CREDENCIALES INVALIDAS
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentials(
+            BadCredentialsException ex,
+            WebRequest request) {
+
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.UNAUTHORIZED.value(),
+                "Unauthorized",
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+    
+    // MANEJA ERROR 401
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUsernameNotFound(
+            UsernameNotFoundException ex,
+            WebRequest request) {
+
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.UNAUTHORIZED.value(),
+                "Unauthorized",
+                "Email o contraseña incorrectos",
+                request.getDescription(false).replace("uri=", "")
+        );
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
 	
 	// MANEJA ERRORES DE VALIDACION
 	@ExceptionHandler(MethodArgumentNotValidException.class)
